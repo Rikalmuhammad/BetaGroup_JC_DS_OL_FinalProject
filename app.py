@@ -92,5 +92,16 @@ if st.button("Prediksi"):
         else:
             st.warning("❌ Nasabah diprediksi **TIDAK** akan berlangganan.")
 
+
+
+try:
+    with open("model.sav", "rb") as f:
+        model = pickle.load(f)
+except ModuleNotFoundError as e:
+    import streamlit as st
+    st.error(f"ModuleNotFoundError: {e}")
+    raise e
+
+
     except Exception as e:
         st.error(f"Terjadi error saat memproses prediksi: {e}")
