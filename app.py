@@ -4,7 +4,7 @@ import pickle
 
 # Load model
 import joblib
-model = joblib.load("model.joblib")
+model = joblib.load("model_inference.joblib")
 
 # Load dataset untuk ambil unique value
 @st.cache_data
