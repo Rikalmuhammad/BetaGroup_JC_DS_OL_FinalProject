@@ -5,8 +5,10 @@ import pickle
 # ------------------------
 # Load trained model
 # ------------------------
-with open("model.sav", "rb") as file:
-    model = pickle.load(file)
+import joblib
+
+model = joblib.load('model.sav')
+
 
 # ------------------------
 # Load dataset (for options)
