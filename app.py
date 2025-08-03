@@ -2,61 +2,31 @@ import streamlit as st
 import pandas as pd
 import pickle
 
-# Load model
-import joblib
-model = joblib.load("model_inference.joblib")
+st.title("Bank Marketing Term Deposit Predictor")
 
-# Load dataset untuk ambil unique value
-@st.cache_data
-def load_data():
-    df = pd.read_csv("bank-additional-full.csv", sep=";")
-    return df
+with st.sidebar:
+    age = st.slider("Age", 17, 98, 30)
+    job = st.selectbox("Job", ["admin.", "blue-collar", ...])
+    marital = st.selectbox("Marital Status", ["married", "single", ...])
+    education = st.selectbox("Education", ["primary", "secondary", ...])
+    default = st.selectbox("Has credit default?", ["yes", "no", "unknown"])
+    housing = st.selectbox("Housing loan?", ["yes", "no"])
+    loan = st.selectbox("Personal loan?", ["yes", "no"])
+    contact = st.selectbox("Contact type", ["cellular", "telephone"])
+    month = st.selectbox("Month", ["jan", "feb", ...])
+    day_of_week = st.selectbox("Day of Week", ["mon", "tue", ...])
+    duration = st.number_input("Last contact duration (s)", min_value=0)
+    campaign = st.number_input("Campaign contacts", min_value=1)
+    pdays = st.number_input("Days since previous contact", value=999)
+    previous = st.number_input("Previous contacts", min_value=0)
+    poutcome = st.selectbox("Previous campaign outcome", ["unknown", "success", ...])
+    emp_var_rate = st.number_input("Employment variation rate")
+    cons_price_idx = st.number_input("Consumer price index")
+    cons_conf_idx = st.number_input("Consumer confidence index")
+    euribor3m = st.number_input("Euribor 3m rate")
+    nr_employed = st.number_input("Number employed")
 
-df = load_data()
-
-st.title("🎯 Prediksi Term Deposit")
-
-st.markdown("Masukkan karakteristik nasabah. Input diambil dari nilai unik dataset asli.")
-
-# Ambil unique value dari dataset untuk tiap kolom
-def get_unique(col):
-    return sorted(df[col].dropna().unique().tolist())
-
-# Slider age
-age = st.slider("Umur", min_value=int(df["age"].min()), max_value=int(df["age"].max()), value=30)
-
-job = st.selectbox("Pekerjaan", get_unique("job"))
-marital = st.selectbox("Status Pernikahan", get_unique("marital"))
-education = st.selectbox("Pendidikan", get_unique("education"))
-default = st.selectbox("Kredit macet sebelumnya?", get_unique("default"))
-housing = st.selectbox("Pinjaman rumah?", get_unique("housing"))
-loan = st.selectbox("Pinjaman pribadi?", get_unique("loan"))
-contact = st.selectbox("Jenis kontak", get_unique("contact"))
-month = st.selectbox("Bulan terakhir dihubungi", get_unique("month"))
-day_of_week = st.selectbox("Hari dalam minggu", get_unique("day_of_week"))
-campaign = st.selectbox("Jumlah kontak selama kampanye ini", sorted(df["campaign"].unique()))
-pdays = st.selectbox("Hari sejak terakhir dihubungi (-1 = belum pernah)", sorted(df["pdays"].unique()))
-previous = st.selectbox("Jumlah kontak sebelumnya", sorted(df["previous"].unique()))
-poutcome = st.selectbox("Hasil kampanye sebelumnya", get_unique("poutcome"))
-emp_var_rate = st.selectbox("Variasi tingkat pekerjaan", sorted(df["emp.var.rate"].unique()))
-cons_price_idx = st.selectbox("Indeks harga konsumen", sorted(df["cons.price.idx"].unique()))
-cons_conf_idx = st.selectbox("Indeks kepercayaan konsumen", sorted(df["cons.conf.idx"].unique()))
-euribor3m = st.selectbox("Suku bunga Euribor 3 bulan", sorted(df["euribor3m"].unique()))
-nr_employed = st.selectbox("Jumlah pekerja", sorted(df["nr.employed"].unique()))
-
-# Generate kolom tambahan pdays_grouped
-def group_pdays(val):
-    if val in [-1, 999]:
-        return "never"
-    elif val < 7:
-        return "recent"
-    else:
-        return "late"
-
-pdays_grouped = group_pdays(pdays)
-
-# Buat dataframe input
-input_data = pd.DataFrame([{
+input_df = pd.DataFrame({
     'age': age,
     'job': job,
     'marital': marital,
@@ -67,6 +37,7 @@ input_data = pd.DataFrame([{
     'contact': contact,
     'month': month,
     'day_of_week': day_of_week,
+    'duration': duration,
     'campaign': campaign,
     'pdays': pdays,
     'previous': previous,
@@ -75,33 +46,19 @@ input_data = pd.DataFrame([{
     'cons.price.idx': cons_price_idx,
     'cons.conf.idx': cons_conf_idx,
     'euribor3m': euribor3m,
-    'nr.employed': nr_employed,
-    'pdays_grouped': pdays_grouped
-}])
+    'nr.employed': nr_employed
+}, index=[0])
 
-# Tampilkan input
-with st.expander("📋 Lihat Input Data"):
-    st.dataframe(input_data)
+st.write("### Input Data")
+st.dataframe(input_df)
 
-# Prediksi
-if st.button("Prediksi"):
-    try:
-        pred = model.predict(input_data)[0]
-        if pred == 1:
-            st.success("✅ Nasabah diprediksi akan **BERLANGGANAN** term deposit.")
-        else:
-            st.warning("❌ Nasabah diprediksi **TIDAK** akan berlangganan.")
+# Load model
+with open('model.sav', 'rb') as f:
+    model = pickle.load(f)
 
-    except Exception as e:
-        st.error(f"Terjadi error saat memproses prediksi: {e}")
+pred = model.predict(input_df)[0]
+prob = model.predict_proba(input_df)[0][1]
 
-
-
-try:
-    with open("model.sav", "rb") as f:
-        model = pickle.load(f)
-except ModuleNotFoundError as e:
-    import streamlit as st
-    st.error(f"ModuleNotFoundError: {e}")
-    raise e
-
+st.write("### Prediction")
+st.write(f"Prediction class: **{'Yes (will subscribe)' if pred==1 else 'No (unlikely)'}**")
+st.write(f"Probability of success: **{prob:.2%}**")
