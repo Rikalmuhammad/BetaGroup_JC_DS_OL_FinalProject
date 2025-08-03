@@ -2,11 +2,15 @@ import streamlit as st
 import pandas as pd
 import pickle
 
-# Load model
-with open("model.sav", "rb") as f:
-    model = pickle.load(f)
+# ------------------------
+# Load trained model
+# ------------------------
+with open("model.sav", "rb") as file:
+    model = pickle.load(file)
 
-# Load dataset untuk ambil unique value
+# ------------------------
+# Load dataset (for options)
+# ------------------------
 @st.cache_data
 def load_data():
     df = pd.read_csv("bank-additional-full.csv", sep=";")
@@ -14,35 +18,43 @@ def load_data():
 
 df = load_data()
 
+# ------------------------
+# App title & description
+# ------------------------
 st.title("🎯 Prediksi Term Deposit")
+st.write("Masukkan karakteristik nasabah di sidebar:")
 
-st.markdown("Masukkan karakteristik nasabah. Input diambil dari nilai unik dataset asli.")
+# ------------------------
+# Sidebar Inputs
+# ------------------------
+st.sidebar.header("Input Nasabah")
 
 def get_unique(col):
     return sorted(df[col].dropna().unique().tolist())
 
-# Input
-age = st.slider("Umur", int(df["age"].min()), int(df["age"].max()), 30)
-job = st.selectbox("Pekerjaan", get_unique("job"))
-marital = st.selectbox("Status Pernikahan", get_unique("marital"))
-education = st.selectbox("Pendidikan", get_unique("education"))
-default = st.selectbox("Kredit macet sebelumnya?", get_unique("default"))
-housing = st.selectbox("Pinjaman rumah?", get_unique("housing"))
-loan = st.selectbox("Pinjaman pribadi?", get_unique("loan"))
-contact = st.selectbox("Jenis kontak", get_unique("contact"))
-month = st.selectbox("Bulan terakhir dihubungi", get_unique("month"))
-day_of_week = st.selectbox("Hari dalam minggu", get_unique("day_of_week"))
-campaign = st.selectbox("Jumlah kontak selama kampanye ini", sorted(df["campaign"].unique()))
-pdays = st.selectbox("Hari sejak terakhir dihubungi (999 = tidak pernah)", sorted(df["pdays"].unique()))
-previous = st.selectbox("Jumlah kontak sebelumnya", sorted(df["previous"].unique()))
-poutcome = st.selectbox("Hasil kampanye sebelumnya", get_unique("poutcome"))
-emp_var_rate = st.selectbox("Variasi tingkat pekerjaan", sorted(df["emp.var.rate"].unique()))
-cons_price_idx = st.selectbox("Indeks harga konsumen", sorted(df["cons.price.idx"].unique()))
-cons_conf_idx = st.selectbox("Indeks kepercayaan konsumen", sorted(df["cons.conf.idx"].unique()))
-euribor3m = st.selectbox("Suku bunga Euribor 3 bulan", sorted(df["euribor3m"].unique()))
-nr_employed = st.selectbox("Jumlah pekerja", sorted(df["nr.employed"].unique()))
+age = st.sidebar.slider("Umur", int(df["age"].min()), int(df["age"].max()), 30)
+job = st.sidebar.selectbox("Pekerjaan", get_unique("job"))
+marital = st.sidebar.selectbox("Status Pernikahan", get_unique("marital"))
+education = st.sidebar.selectbox("Pendidikan", get_unique("education"))
+default = st.sidebar.selectbox("Kredit Macet", get_unique("default"))
+housing = st.sidebar.selectbox("Pinjaman Rumah", get_unique("housing"))
+loan = st.sidebar.selectbox("Pinjaman Pribadi", get_unique("loan"))
+contact = st.sidebar.selectbox("Jenis Kontak", get_unique("contact"))
+month = st.sidebar.selectbox("Bulan Kontak", get_unique("month"))
+day_of_week = st.sidebar.selectbox("Hari Kontak", get_unique("day_of_week"))
+campaign = st.sidebar.selectbox("Jumlah Kontak Kampanye Ini", sorted(df["campaign"].unique()))
+pdays = st.sidebar.selectbox("Hari sejak kontak terakhir (999 = belum pernah)", sorted(df["pdays"].unique()))
+previous = st.sidebar.selectbox("Jumlah Kontak Sebelumnya", sorted(df["previous"].unique()))
+poutcome = st.sidebar.selectbox("Hasil Kampanye Sebelumnya", get_unique("poutcome"))
+emp_var_rate = st.sidebar.selectbox("Variasi Tingkat Pekerjaan", sorted(df["emp.var.rate"].unique()))
+cons_price_idx = st.sidebar.selectbox("Indeks Harga Konsumen", sorted(df["cons.price.idx"].unique()))
+cons_conf_idx = st.sidebar.selectbox("Indeks Kepercayaan Konsumen", sorted(df["cons.conf.idx"].unique()))
+euribor3m = st.sidebar.selectbox("Suku Bunga Euribor 3 Bulan", sorted(df["euribor3m"].unique()))
+nr_employed = st.sidebar.selectbox("Jumlah Pekerja", sorted(df["nr.employed"].unique()))
 
-# ✅ Gunakan logika yang PERSIS dengan .ipynb
+# ------------------------
+# Generate `pdays_grouped`
+# ------------------------
 def group_pdays(val):
     if val == 999:
         return "never_contacted"
@@ -51,7 +63,9 @@ def group_pdays(val):
 
 pdays_grouped = group_pdays(pdays)
 
-# Buat dataframe input (tanpa pdays kalau pipeline nggak butuh)
+# ------------------------
+# Final input dataframe
+# ------------------------
 input_df = pd.DataFrame([{
     'age': age,
     'job': job,
@@ -74,17 +88,18 @@ input_df = pd.DataFrame([{
     'pdays_grouped': pdays_grouped
 }])
 
-# Lihat input
-with st.expander("📋 Lihat Input Data"):
-    st.dataframe(input_df)
+st.subheader("📋 Data Input")
+st.write(input_df)
 
-# Prediksi
-if st.button("Prediksi"):
+# ------------------------
+# Prediction Button
+# ------------------------
+if st.button("🔮 Prediksi"):
     try:
-        pred = model.predict(input_df)[0]
-        if pred == 1:
-            st.success("✅ Nasabah diprediksi akan **BERLANGGANAN** term deposit.")
+        prediction = model.predict(input_df)[0]
+        if prediction == 1:
+            st.success("✅ Nasabah diprediksi akan **BERLANGGANAN** Term Deposit.")
         else:
             st.warning("❌ Nasabah diprediksi **TIDAK** akan berlangganan.")
     except Exception as e:
-        st.error(f"Terjadi error saat memproses prediksi: {e}")
+        st.error(f"Terjadi error saat prediksi: {e}")
