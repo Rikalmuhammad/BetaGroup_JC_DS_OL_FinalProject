@@ -3,8 +3,8 @@ import pandas as pd
 import pickle
 
 # Load model
-with open("model.sav", "rb") as f:
-    model = pickle.load(f)
+import joblib
+model = joblib.load("model.joblib")
 
 # Load dataset untuk ambil unique value
 @st.cache_data
@@ -94,3 +94,14 @@ if st.button("Prediksi"):
 
     except Exception as e:
         st.error(f"Terjadi error saat memproses prediksi: {e}")
+
+
+
+try:
+    with open("model.sav", "rb") as f:
+        model = pickle.load(f)
+except ModuleNotFoundError as e:
+    import streamlit as st
+    st.error(f"ModuleNotFoundError: {e}")
+    raise e
+
