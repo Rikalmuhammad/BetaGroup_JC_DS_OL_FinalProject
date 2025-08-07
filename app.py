@@ -1,14 +1,25 @@
 import streamlit as st
 import pandas as pd
-import pickle
+import numpy as np
+import joblib
+from sklearn.metrics import confusion_matrix
+
+# -------------------------------------------
+# Fungsi metric custom agar joblib.load sukses
+# -------------------------------------------
+def business_metric(y, y_pred):
+    tn, fp, fn, tp = confusion_matrix(y, y_pred).ravel()
+    total = tn + fp + fn + tp
+    raw_score = ((tp*131 - (fp+tp)*18) - ((tp+fn)*131 - total*18)) / total
+    min_score = -14.52
+    max_score = 18.0
+    normalized_score = (raw_score - min_score) / (max_score - min_score)
+    return normalized_score
 
 # ------------------------
 # Load trained model
 # ------------------------
-import joblib
-
 model = joblib.load('model.sav')
-
 
 # ------------------------
 # Load dataset (for options)
@@ -57,13 +68,23 @@ nr_employed = st.sidebar.selectbox("Jumlah Pekerja", sorted(df["nr.employed"].un
 # ------------------------
 # Generate `pdays_grouped`
 # ------------------------
-def group_pdays(val):
-    if val == 999:
-        return "never_contacted"
-    else:
-        return "contacted_before"
+pdays_grouped = "never_contacted" if pdays == 999 else "contacted_before"
 
-pdays_grouped = group_pdays(pdays)
+# ------------------------
+# Terapkan capping
+# ------------------------
+campaign_cap = df['campaign'].quantile(0.95)
+previous_cap = df['previous'].quantile(0.95)
+age_cap = df['age'].quantile(0.99)
+
+campaign = min(campaign, campaign_cap)
+previous = min(previous, previous_cap)
+age = min(age, age_cap)
+
+# ------------------------
+# job 'admin.' → 'admin'
+# ------------------------
+job = 'admin' if job == 'admin.' else job
 
 # ------------------------
 # Final input dataframe
