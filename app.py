@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import joblib
 from sklearn.metrics import confusion_matrix
+from PIL import Image
+
 
 # -------------------------------------------
 # Fungsi metric custom agar joblib.load sukses
@@ -35,6 +37,8 @@ df = load_data()
 # App title & description
 # ------------------------
 st.title("🎯 Prediksi Term Deposit")
+image = Image.open("logo.jpg")
+st.image(image, use_column_width=True)
 st.write("Masukkan karakteristik nasabah di sidebar:")
 
 # ------------------------
@@ -111,6 +115,9 @@ input_df = pd.DataFrame([{
     'pdays_grouped': pdays_grouped
 }])
 
+# ------------------------
+# Show Input
+# ------------------------
 st.subheader("📋 Data Input")
 st.write(input_df)
 
@@ -126,3 +133,53 @@ if st.button("🔮 Prediksi"):
             st.warning("❌ Nasabah diprediksi **TIDAK** akan berlangganan.")
     except Exception as e:
         st.error(f"Terjadi error saat prediksi: {e}")
+
+# ------------------------
+# ABOUT THIS APP
+# ------------------------
+with st.expander("ℹ️ About this App"):
+    st.markdown("""
+    Aplikasi ini dibuat sebagai bagian dari proyek machine learning untuk memprediksi apakah nasabah akan berlangganan **Term Deposit** berdasarkan berbagai fitur demografis dan historis kampanye marketing.
+    
+    Model yang digunakan adalah **LightGBM Classifier** yang telah di-*tune* dengan RandomizedSearchCV dan menggunakan metrik bisnis yang disesuaikan dengan konteks perusahaan.
+
+    Aplikasi ini bersifat edukatif dan ditujukan untuk pembelajaran analisis data prediktif.
+    """)
+
+# ------------------------
+# FEATURE INFORMATION
+# ------------------------
+with st.expander("📊 Feature Information"):
+    st.markdown("""
+| Attribute | Data Type | Description |
+| --- | --- | --- |
+| age | Integer | Usia calon nasabah |
+| job | String | Pekerjaan calon nasabah |
+| marital | String | Status pernikahan calon nasabah |
+| education | String | Status pendidikan calon nasabah |
+| default | String | Pernahkah calon nasabah gagal bayar sebelumnya? |
+| housing | String | Apakah calon nasabah memiliki cicilan rumah? |
+| loan | String | Apakah calon nasabah memiliki pinjaman? |
+| contact | String | Jenis komunikasi yang digunakan |
+| month | String | Bulan dimana terakhir kali melakukan panggilan dengan nasabah pada tahun ini |
+| day_of_week | String | Hari dimana terakhir kali melakukan panggilan dengan nasabah |
+| campaign | Integer | Jumlah panggilan yang dilakukan selama kampanye untuk nasabah ini |
+| pdays_grouped | String | Status apakah nasabah pernah dihubungi sebelumnya |
+| previous | Integer | Jumlah panggilan yang dilakukan sebelum kampanye ini |
+| poutcome | String | Hasil dari kampanye sebelumnya |
+| emp.var.rate | Float | Employment Variation Rate: perubahan jumlah orang yang bekerja (dalam %) di Portugal |
+| cons.price.idx | Float | Consumer Price Index: indikator perubahan harga barang dan jasa (indikator inflasi) |
+| cons.conf.idx | Float | Consumer Confidence Index: tingkat kepercayaan masyarakat terhadap ekonomi |
+| euribor3m | Float | Euribor 3 Month Rate: tingkat suku bunga antar bank Eropa |
+| nr.employed | Float | Indikator tenaga kerja global di Portugal |
+| y | String | Apakah calon nasabah memutuskan untuk berlangganan deposito atau tidak |
+    """)
+
+# ------------------------
+# CREATOR
+# ------------------------
+with st.expander("👨‍💻 Creator"):
+    st.markdown("""
+- **Muhammad Rikal Renaldy** — [GitHub](https://github.com/Rikalmuhammad)
+- **Akmal Raafid Taufiqurrahman** — [GitHub](https://github.com/akmalraafid25)
+    """)
