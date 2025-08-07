@@ -38,7 +38,7 @@ df = load_data()
 # ------------------------
 st.title("🎯 Prediksi Term Deposit")
 image = Image.open("logo.jpg")
-st.image(image, use_column_width=True)
+st.image(image, use_container_width=True)
 st.write("Masukkan karakteristik nasabah di sidebar:")
 
 # ------------------------
